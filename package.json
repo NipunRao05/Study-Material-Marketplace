@@ -1,0 +1,26 @@
+{
+  "name": "study-material-marketplace",
+  "version": "1.0.0",
+  "description": "File Structure\r Study-Material-Marketplace/\r ├── backend/                          # Express.js backend\r │   ├── config/\r │   │   └── db.js                    # MySQL connection pool\r │   ├── controllers/                  # Business logic\r │   │   ├── authController.js\r │   │   ├── listingController.js\r │   │   ├── cartController.js\r │   │   └── orderController.js\r │   ├── routes/                       # API routes\r │   │   ├── auth.js\r │   │   ├── listings.js\r │   │   ├── cart.js\r │   │   └── orders.js\r │   ├── middleware/\r │   │   └── auth.js                  # Auth middleware\r │   ├── package.json\r │   ├── .env\r │   └── server.js                    # Entry point\r │\r ├── frontend/                         # React app\r │   ├── src/\r │   │   ├── api/\r │   │   │   └── api.js               # Axios configuration\r │   │   ├── pages/\r │   │   │   ├── Home.jsx\r │   │   │   ├── Login.jsx\r │   │   │   ├── Register.jsx\r │   │   │   ├── Listings.jsx\r │   │   │   ├── ListingDetail.jsx\r │   │   │   ├── AddListing.jsx\r │   │   │   ├── Cart.jsx\r │   │   │   ├── Checkout.jsx\r │   │   │   └── Profile.jsx\r │   │   ├── components/\r │   │   │   ├── Navbar.jsx\r │   │   │   ├── ListingCard.jsx\r │   │   │   ├── SearchBar.jsx\r │   │   │   └── CartItem.jsx\r │   │   ├── context/\r │   │   │   ├── AuthContext.jsx      # Auth state\r │   │   │   └── CartContext.jsx      # Cart state\r │   │   ├── App.jsx                  # Route definitions\r │   │   └── main.jsx                 # Entry point\r │   ├── package.json\r │   └── tailwind.config.js\r │\r ├── database/\r │   └── schema.sql                   # Database tables and sample data\r │\r ├── README.md                        # This file\r ├── deployment-guide.md              # Deployment instructions\r └── backend-setup-guide.md           # Complete backend code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NipunRao05/Study-Material-Marketplace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NipunRao05/Study-Material-Marketplace/issues"
+  },
+  "homepage": "https://github.com/NipunRao05/Study-Material-Marketplace#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3"
+  }
+}
