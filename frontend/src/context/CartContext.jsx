@@ -23,13 +23,23 @@ export function CartProvider({ children }) {
 
   const fetchCart = async () => {
     if (!user) return
-    
+
     try {
       setLoading(true)
-      const response = await cartAPI.get(user.user_id)
+      const id = user.UserID
+      const response = await cartAPI.get(id)
       setCartItems(response.data || [])
     } catch (error) {
-      console.error('Failed to fetch cart:', error)
+      // Print server response body (if any), HTTP status, and fallback message
+      console.error('Failed to fetch cart:', error.response?.data ?? error.message ?? error);
+
+      // Helpful debug info
+      console.debug('Cart fetch user id:', user?.UserID ?? user?.UserID ?? user?.userID);
+      if (error.response) {
+        console.debug('Response status:', error.response.status, 'headers:', error.response.headers);
+      } else {
+        console.debug('No response received (network error or CORS).');
+      }
     } finally {
       setLoading(false)
     }
@@ -42,8 +52,8 @@ export function CartProvider({ children }) {
 
     try {
       await cartAPI.add({
-        user_id: user.user_id,
-        listing_id: listing.listing_id,
+        userID: user.userID || user.UserID || user.UserID,
+        listingID: listing.listing_id || listing.ListingID || listing.listingID,
         quantity,
       })
       await fetchCart()
@@ -58,8 +68,8 @@ export function CartProvider({ children }) {
 
     try {
       await cartAPI.remove({
-        user_id: user.user_id,
-        listing_id: listingId,
+        userID: user.userID || user.UserID || user.UserID,
+        listingID: listingId,
       })
       await fetchCart()
     } catch (error) {

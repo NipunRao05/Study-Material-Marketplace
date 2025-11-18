@@ -17,8 +17,8 @@ export default function Profile() {
     try {
       setLoading(true)
       const [ordersRes, listingsRes] = await Promise.all([
-        ordersAPI.getUserOrders(user.user_id),
-        listingsAPI.getAll({ seller_id: user.user_id }),
+        ordersAPI.getUserOrders(user.UserID),
+        listingsAPI.getAll({ SellerID: user.UserID }),
       ])
       setOrders(ordersRes.data || [])
       setMyListings(listingsRes.data || [])

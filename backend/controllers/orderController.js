@@ -2,9 +2,9 @@ import db from '../config/db.js';
 
 export async function checkout(req, res) {
   try {
-    const { user_id, shipping_address, shipping_method } = req.body;
+    const { UserID, shipping_address, shipping_method } = req.body;
 
-    if (!user_id) {
+    if (!UserID) {
       return res.status(400).json({ error: 'User ID required' });
     }
 
@@ -14,8 +14,8 @@ export async function checkout(req, res) {
        FROM Cart c
        JOIN Listings l ON c.listing_id = l.listing_id
        JOIN Books b ON l.book_id = b.book_id
-       WHERE c.user_id = ?`,
-      [user_id]
+       WHERE c.UserID = ?`,
+      [UserID]
     );
 
     if (cartItems.length === 0) {
@@ -46,7 +46,7 @@ export async function checkout(req, res) {
         const [orderResult] = await connection.query(
           `INSERT INTO Orders (buyer_id, listing_id, quantity, status, order_date)
            VALUES (?, ?, ?, 'Completed', NOW())`,
-          [user_id, item.listing_id, item.quantity]
+          [UserID, item.listing_id, item.quantity]
         );
 
         // Update listing quantity
@@ -74,7 +74,7 @@ export async function checkout(req, res) {
       }
 
       // Clear cart
-      await connection.query('DELETE FROM Cart WHERE user_id = ?', [user_id]);
+      await connection.query('DELETE FROM Cart WHERE UserID = ?', [UserID]);
 
       await connection.commit();
       connection.release();
@@ -126,7 +126,7 @@ export async function getOrders(req, res) {
       FROM Orders o
       JOIN Listings l ON o.listing_id = l.listing_id
       JOIN Books b ON l.book_id = b.book_id
-      JOIN Users u ON l.seller_id = u.user_id
+      JOIN users u ON l.seller_id = u.UserID
       WHERE o.buyer_id = ?
       ORDER BY o.order_date DESC
     `;
@@ -158,7 +158,7 @@ export async function getSellingOrders(req, res) {
       FROM Orders o
       JOIN Listings l ON o.listing_id = l.listing_id
       JOIN Books b ON l.book_id = b.book_id
-      JOIN Users buyer ON o.buyer_id = buyer.user_id
+      JOIN users buyer ON o.buyer_id = buyer.UserID
       WHERE l.seller_id = ?
       ORDER BY o.order_date DESC
     `;

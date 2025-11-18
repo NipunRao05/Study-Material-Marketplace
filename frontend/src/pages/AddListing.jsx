@@ -30,7 +30,7 @@ export default function AddListing() {
 
     try {
       await listingsAPI.create({
-        seller_id: user.user_id,
+        seller_id: user.UserID,
         title: formData.title,
         author: formData.author,
         edition: formData.edition,

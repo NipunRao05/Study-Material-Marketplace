@@ -2,7 +2,7 @@
 
 // export async function getAllListings(req, res) {
 //   try {
-//     const { search, course_id, department_id, minPrice, maxPrice, condition } = req.query;
+//     const { search, course_id, DepartmentID, minPrice, maxPrice, condition } = req.query;
 
 //     let query = `
 //       SELECT 
@@ -23,8 +23,8 @@
 //       FROM Listings l
 //       JOIN Books b ON l.book_id = b.book_id
 //       JOIN Courses c ON b.course_id = c.course_id
-//       JOIN Departments d ON c.department_id = d.department_id
-//       JOIN Users u ON l.seller_id = u.user_id
+//       JOIN Departments d ON c.DepartmentID = d.DepartmentID
+//       JOIN Users u ON l.seller_id = u.UserID
 //       WHERE l.status = 'Available'
 //     `;
 
@@ -41,9 +41,9 @@
 //       params.push(course_id);
 //     }
 
-//     if (department_id) {
-//       query += ' AND c.department_id = ?';
-//       params.push(department_id);
+//     if (DepartmentID) {
+//       query += ' AND c.DepartmentID = ?';
+//       params.push(DepartmentID);
 //     }
 
 //     if (minPrice) {
@@ -204,7 +204,7 @@ import db from '../config/db.js';
 
 export async function getAllListings(req, res) {
   try {
-    const { search, course_id, department_id, minPrice, maxPrice, condition } = req.query;
+    const { search, course_id, DepartmentID, minPrice, maxPrice, condition } = req.query;
 
     let query = `
       SELECT 
@@ -242,9 +242,9 @@ export async function getAllListings(req, res) {
       params.push(course_id);
     }
 
-    if (department_id) {
+    if (DepartmentID) {
       query += ' AND c.DepartmentID = ?';
-      params.push(department_id);
+      params.push(DepartmentID);
     }
 
     if (minPrice) {

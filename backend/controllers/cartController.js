@@ -6,22 +6,22 @@ export async function getCart(req, res) {
 
     const query = `
       SELECT 
-        c.cart_id,
-        c.user_id,
-        c.listing_id,
-        c.quantity,
-        l.price,
-        l.condition,
-        l.quantity as available_quantity,
-        b.title,
-        b.author,
-        b.edition,
-        u.name as seller_name
+        c.CartID as cart_id,
+        c.UserID as UserID,
+        c.ListingID as listing_id,
+        c.Quantity as quantity,
+        l.Price as price,
+        l.Condition as condition,
+        l.Quantity as available_quantity,
+        b.Title as title,
+        b.Author as author,
+        b.Edition as edition,
+        u.Name as seller_name
       FROM Cart c
-      JOIN Listings l ON c.listing_id = l.listing_id
-      JOIN Books b ON l.book_id = b.book_id
-      JOIN Users u ON l.seller_id = u.user_id
-      WHERE c.user_id = ?
+      JOIN Listings l ON c.ListingID = l.ListingID
+      JOIN Books b ON l.BookID = b.BookID
+      JOIN users u ON l.SellerID = u.UserID
+      WHERE c.UserID = ?
     `;
 
     const [cartItems] = await db.query(query, [userId]);
@@ -34,56 +34,58 @@ export async function getCart(req, res) {
 
 export async function addToCart(req, res) {
   try {
-    const { user_id, listing_id, quantity } = req.body;
+    const userId = req.body.userID || req.body.UserID;
+    const listingId = req.body.listingID || req.body.listing_id;
+    const quantity = req.body.quantity;
 
     // Validation
-    if (!user_id || !listing_id || !quantity) {
+    if (!userId || !listingId || !quantity) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Check if listing exists and has quantity
     const [listings] = await db.query(
-      'SELECT quantity FROM Listings WHERE listing_id = ? AND status = "Available"',
-      [listing_id]
+      'SELECT Quantity FROM Listings WHERE ListingID = ? AND Status = "Available"',
+      [listingId]
     );
 
     if (listings.length === 0) {
       return res.status(404).json({ error: 'Listing not available' });
     }
 
-    if (listings.quantity < quantity) {
+    if (listings[0].Quantity < quantity) {
       return res.status(400).json({ error: 'Insufficient quantity available' });
     }
 
     // Check if already in cart
     const [existing] = await db.query(
-      'SELECT cart_id FROM Cart WHERE user_id = ? AND listing_id = ?',
-      [user_id, listing_id]
+      'SELECT CartID FROM Cart WHERE UserID = ? AND ListingID = ?',
+      [userId, listingId]
     );
 
     if (existing.length > 0) {
       // Update quantity
       await db.query(
-        'UPDATE Cart SET quantity = quantity + ? WHERE user_id = ? AND listing_id = ?',
-        [quantity, user_id, listing_id]
+        'UPDATE Cart SET Quantity = Quantity + ? WHERE UserID = ? AND ListingID = ?',
+        [quantity, userId, listingId]
       );
     } else {
       // Insert new cart item
       await db.query(
-        'INSERT INTO Cart (user_id, listing_id, quantity) VALUES (?, ?, ?)',
-        [user_id, listing_id, quantity]
+        'INSERT INTO Cart (UserID, ListingID, Quantity) VALUES (?, ?, ?)',
+        [userId, listingId, quantity]
       );
     }
 
     // Return updated cart
     const [cartItems] = await db.query(
-      `SELECT c.cart_id, c.listing_id, c.quantity, l.price, b.title, u.name as seller_name
-       FROM Cart c
-       JOIN Listings l ON c.listing_id = l.listing_id
-       JOIN Books b ON l.book_id = b.book_id
-       JOIN Users u ON l.seller_id = u.user_id
-       WHERE c.user_id = ?`,
-      [user_id]
+      `SELECT c.CartID as cart_id, c.ListingID as listing_id, c.Quantity as quantity, l.Price as price, b.Title as title, u.Name as seller_name
+      FROM Cart c
+      JOIN Listings l ON c.ListingID = l.ListingID
+      JOIN Books b ON l.BookID = b.BookID
+      JOIN users u ON l.SellerID = u.UserID
+       WHERE c.UserID = ?`,
+      [userId]
     );
 
     res.json({
@@ -99,25 +101,26 @@ export async function addToCart(req, res) {
 
 export async function removeFromCart(req, res) {
   try {
-    const { user_id, listing_id } = req.body;
+    const userId = req.body.userID || req.body.UserID;
+    const listingId = req.body.listingID || req.body.listing_id;
 
-    if (!user_id || !listing_id) {
+    if (!userId || !listingId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     await db.query(
-      'DELETE FROM Cart WHERE user_id = ? AND listing_id = ?',
-      [user_id, listing_id]
+      'DELETE FROM Cart WHERE UserID = ? AND ListingID = ?',
+      [userId, listingId]
     );
 
     // Return updated cart
     const [cartItems] = await db.query(
-      `SELECT c.cart_id, c.listing_id, c.quantity, l.price, b.title
+      `SELECT c.CartID as cart_id, c.ListingID as listing_id, c.Quantity as quantity, l.Price as price, b.Title as title
        FROM Cart c
-       JOIN Listings l ON c.listing_id = l.listing_id
-       JOIN Books b ON l.book_id = b.book_id
-       WHERE c.user_id = ?`,
-      [user_id]
+       JOIN Listings l ON c.ListingID = l.ListingID
+       JOIN Books b ON l.BookID = b.BookID
+       WHERE c.UserID = ?`,
+      [userId]
     );
 
     res.json({
