@@ -452,10 +452,7 @@
 // backend/controllers/listingController.js
 import db from "../config/db.js";
 
-/**
- * GET /api/listings
- * Returns all active listings
- */
+// =============== GET ALL LISTINGS =====================
 export async function getAllListings(req, res) {
   try {
     const query = `
@@ -483,36 +480,33 @@ export async function getAllListings(req, res) {
     `;
 
     const [rows] = await db.query(query);
-    return res.json(rows);
-
+    res.json(rows);
   } catch (error) {
     console.error("Get listings error:", error);
-    return res.status(500).json({ error: "Failed to fetch listings", message: error.message });
+    res.status(500).json({ error: "Failed to fetch listings" });
   }
 }
 
-/**
- * GET /api/listings/:id
- */
+// =============== GET LISTING BY ID =====================
 export async function getListingById(req, res) {
   try {
     const { id } = req.params;
 
     const query = `
       SELECT 
-        l.ListingID AS listing_id,
-        l.SellerID AS seller_id,
-        l.BookID AS book_id,
-        b.Title AS title,
-        b.Author AS author,
+        l.ListingID,
+        l.SellerID,
+        l.BookID,
+        b.Title,
+        b.Author,
         c.Code AS course_code,
         c.Title AS course_title,
         d.Name AS department_name,
         u.Name AS seller_name,
-        l.Price AS price,
-        l.Condition AS item_condition,
-        l.Quantity AS quantity,
-        l.Status AS status
+        l.Price,
+        l.Condition,
+        l.Quantity,
+        l.Status
       FROM listings l
       JOIN books b ON l.BookID = b.BookID
       JOIN courses c ON b.CourseID = c.CourseID
@@ -523,87 +517,79 @@ export async function getListingById(req, res) {
 
     const [rows] = await db.query(query, [id]);
 
-    if (rows.length === 0) {
+    if (rows.length === 0)
       return res.status(404).json({ error: "Listing not found" });
-    }
 
-    return res.json(rows[0]);
-
+    res.json(rows[0]);
   } catch (error) {
     console.error("Get listing error:", error);
-    res.status(500).json({ error: "Failed to fetch listing", message: error.message });
+    res.status(500).json({ error: "Failed to fetch listing" });
   }
 }
 
-
-/**
- * POST /api/listings
- */
+// =============== CREATE LISTING (WITH IMAGE) =====================
 export async function createListing(req, res) {
   try {
-    //ADDED BY SHARAVANA
-    console.log("REQ BODY =", req.body);
+    console.log("REQ BODY:", req.body);
+    console.log("REQ FILE:", req.file);
 
     const {
       seller_id,
       title,
       author,
-      edition,   // This is optional because DB does not have Edition column
       course_code,
       price,
       condition,
-      quantity,
-      description  // ALSO optional (DB has no description column)
+      quantity
     } = req.body;
 
-    if (!seller_id || !title || !author || !price || !quantity) {
+    if (!seller_id || !title || !author || !price || !quantity)
       return res.status(400).json({ error: "Missing required fields" });
-    }
 
-    // Validate course code
     const [course] = await db.query(
-      "SELECT CourseID, DepartmentID FROM courses WHERE Code = ?",
+      "SELECT CourseID FROM courses WHERE Code = ?",
       [course_code]
     );
 
-    if (course.length === 0) {
+    if (course.length === 0)
       return res.status(400).json({ error: "Invalid course code" });
-    }
 
     const CourseID = course[0].CourseID;
 
-    // Create Book record (Edition ignored because table does NOT have Edition column)
+    let imageBuffer = null;
+    let imageType = null;
+
+    if (req.file) {
+      imageBuffer = req.file.buffer;
+      imageType = req.file.mimetype;
+    }
+
     const [bookResult] = await db.query(
-      `INSERT INTO books (Title, Author, CourseID)
-       VALUES (?, ?, ?)`,
-      [title, author, CourseID]
+      `INSERT INTO books (Title, Author, CourseID, Image, ImageType)
+       VALUES (?, ?, ?, ?, ?)`,
+      [title, author, CourseID, imageBuffer, imageType]
     );
 
     const newBookID = bookResult.insertId;
 
-    // Create Listing CHANGED BY SHARAVANA 
     const [listingResult] = await db.query(
-  `INSERT INTO listings (\`SellerID\`, \`BookID\`, \`Price\`, \`Condition\`, \`Quantity\`, \`Status\`)
-   VALUES (?, ?, ?, ?, ?, 'Available')`,
-  [seller_id, newBookID, price, condition, quantity]
-);
+      `INSERT INTO listings (SellerID, BookID, Price, Condition, Quantity, Status)
+       VALUES (?, ?, ?, ?, ?, 'Available')`,
+      [seller_id, newBookID, price, condition, quantity]
+    );
 
-
-    return res.json({
+    res.json({
       ok: true,
       message: "Listing created successfully",
       listing_id: listingResult.insertId
     });
-
   } catch (error) {
     console.error("Create listing error:", error);
-    return res.status(500).json({ error: "Failed to create listing", message: error.message });
+    res.status(500).json({ error: "Failed to create listing" });
   }
 }
 
-/**
- * PUT /api/listings/:id
- */
+// =============== UPDATE LISTING =====================
 export async function updateListing(req, res) {
   try {
     const { id } = req.params;
@@ -611,32 +597,50 @@ export async function updateListing(req, res) {
 
     await db.query(
       `UPDATE listings
-       SET Price = ?, Condition = ?, Quantity = ?, Status = ?
-       WHERE ListingID = ?`,
+       SET Price=?, Condition=?, Quantity=?, Status=?
+       WHERE ListingID=?`,
       [price, condition, quantity, status, id]
     );
 
-    return res.json({ ok: true, message: "Listing updated" });
-
+    res.json({ ok: true, message: "Listing updated" });
   } catch (error) {
-    console.error("Update listing error:", error);
-    return res.status(500).json({ error: "Failed to update listing", message: error.message });
+    console.error("Update error:", error);
+    res.status(500).json({ error: "Failed to update listing" });
   }
 }
 
-/**
- * DELETE /api/listings/:id
- */
+// =============== DELETE LISTING =====================
 export async function deleteListing(req, res) {
   try {
     const { id } = req.params;
 
     await db.query("DELETE FROM listings WHERE ListingID = ?", [id]);
 
-    return res.json({ ok: true, message: "Listing deleted" });
-
+    res.json({ ok: true, message: "Listing deleted" });
   } catch (error) {
-    console.error("Delete listing error:", error);
-    return res.status(500).json({ error: "Failed to delete listing", message: error.message });
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete listing" });
   }
 }
+
+// =============== GET IMAGE =====================
+export async function getBookImage(req, res) {
+  try {
+    const { bookId } = req.params;
+
+    const [rows] = await db.query(
+      "SELECT Image, ImageType FROM books WHERE BookID = ?",
+      [bookId]
+    );
+
+    if (!rows.length || !rows[0].Image)
+      return res.status(404).send("No image found");
+
+    res.set("Content-Type", rows[0].ImageType);
+    res.send(rows[0].Image);
+  } catch (error) {
+    console.error("Image fetch error:", error);
+    res.status(500).send("Error fetching image");
+  }
+}
+

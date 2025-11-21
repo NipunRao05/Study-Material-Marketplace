@@ -1,10 +1,5 @@
 import multer from "multer";
 
-const storage = multer.memoryStorage();  // <--- stores file in req.file.buffer
+const storage = multer.memoryStorage(); // store image as Buffer in RAM
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
-
-export default upload;
+export const upload = multer({ storage });
