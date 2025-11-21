@@ -24,21 +24,28 @@ export function CartProvider({ children }) {
   const fetchCart = async () => {
     if (!user) return
 
+    const id = user?.userID || user?.UserID || user?.user_id
+    console.debug('Cart fetch user id:', id)
+    if (!id) {
+      console.warn('No user id available for cart fetch — skipping request')
+      setCartItems([])
+      return
+    }
+
     try {
       setLoading(true)
-      const id = user.UserID
       const response = await cartAPI.get(id)
       setCartItems(response.data || [])
     } catch (error) {
       // Print server response body (if any), HTTP status, and fallback message
-      console.error('Failed to fetch cart:', error.response?.data ?? error.message ?? error);
+      console.error('Failed to fetch cart:', error.response?.data ?? error.message ?? error)
 
       // Helpful debug info
-      console.debug('Cart fetch user id:', user?.UserID ?? user?.UserID ?? user?.userID);
+      console.debug('Cart fetch attempted for id:', id)
       if (error.response) {
-        console.debug('Response status:', error.response.status, 'headers:', error.response.headers);
+        console.debug('Response status:', error.response.status, 'headers:', error.response.headers)
       } else {
-        console.debug('No response received (network error or CORS).');
+        console.debug('No response received (network error or CORS).')
       }
     } finally {
       setLoading(false)
@@ -52,7 +59,7 @@ export function CartProvider({ children }) {
 
     try {
       await cartAPI.add({
-        userID: user.userID || user.UserID || user.UserID,
+        userID: user.userID || user.UserID || user.user_id,
         listingID: listing.listing_id || listing.ListingID || listing.listingID,
         quantity,
       })
@@ -68,7 +75,7 @@ export function CartProvider({ children }) {
 
     try {
       await cartAPI.remove({
-        userID: user.userID || user.UserID || user.UserID,
+        userID: user.userID || user.UserID || user.user_id,
         listingID: listingId,
       })
       await fetchCart()
