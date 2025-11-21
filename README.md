@@ -48,7 +48,8 @@ Study-Material-Marketplace/
 │   └── tailwind.config.js
 │
 ├── database/
-│   └── schema.sql                   # Database tables and sample data
+│   └── schema.sql     
+│   └── functions.sql        # Database tables and sample data
 │
 ├── README.md                        # This file
 ├── deployment-guide.md              # Deployment instructions
